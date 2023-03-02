@@ -1,0 +1,8 @@
+/assets
+/logs
+/raw_data_jsons
+/backups
+/test.py
+/utilities.py
+/game_objects/assets
+/.idea
