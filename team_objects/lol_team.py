@@ -34,3 +34,6 @@ class LolTeam():
             time.sleep(0.5)
 
 
+
+
+
