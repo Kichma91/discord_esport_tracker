@@ -24,7 +24,7 @@ class PayloadHandler(Constants):
         if update_dota_league:
             self.update_dota_league_data()
         self.dota_league_data = pd.read_csv(self.dota_league_data_file)
-        self.game_controller = GameController
+        self.game_controller = GameController()
         self.main_loop()
 
 
@@ -95,7 +95,11 @@ class PayloadHandler(Constants):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         while True:
             accepted_games = self.scrape_and_filter_data()
-            print(accepted_games)
+            print(len(accepted_games))
+            self.game_controller.update_games(game_list=accepted_games)
+
+            self.game_controller.create_images()
+
             time.sleep(5)
 
 if __name__ == "__main__":

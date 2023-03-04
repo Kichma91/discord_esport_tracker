@@ -21,7 +21,6 @@ class LolTeam(Constants):
         self.inhibitors = 0
         self.towers = 0
         self.barons = 0
-        self.total_kills = 0
         self.dragons = []
         self.download_team_image()
 

@@ -65,7 +65,7 @@ class LoLMatch(Match, Constants):
                 team_image_name = team["image"].split("/")[-1]
                 team_game_wins = team["result"]["gameWins"]
                 self.teams[team_name] = LolTeam(name=team_name, code=team_code, image_link=team_image_link,
-                                                image_name=team_image_name, game_wins=team_game_wins, dirs=self.dirs)
+                                                image_name=team_image_name, game_wins=team_game_wins)
         # first assign immediately makes full data creation from first and secondary data
         self.first_assign()
 
@@ -102,19 +102,22 @@ class LoLMatch(Match, Constants):
                 self.match_finished = True
                 self.match_finished_time = datetime.now()
                 return
-        if (self.raw_data_two["data"]["event"]["match"]["games"][self.active_game_id]["state"] != "inProgress"):
-            print("FINISHED GAME")
-            self.get_next_game_data()
-            self.raw_data_three = {}
-            self.raw_data_level = "low"
-            self.third_data_assigned = False
-            self.secondary_data_assigned = False
-            self.active_game_id = None
-            # create finished image
-            self.finished_time = datetime.now()
-            self.finished_state = True
-            self.main_time_difference = timedelta()
-            self.additional_time_difference = timedelta(seconds=5)
+        for game in self.raw_data_two["data"]["event"]["match"]["games"]:
+            if game["id"] == self.active_game_id:
+                if game["state"] != "inProgress":
+
+                    print("FINISHED GAME")
+                    self.get_next_game_data()
+                    self.raw_data_three = {}
+                    self.raw_data_level = "low"
+                    self.third_data_assigned = False
+                    self.secondary_data_assigned = False
+                    self.active_game_id = None
+                    # create finished image
+                    self.finished_time = datetime.now()
+                    self.finished_state = True
+                    self.main_time_difference = timedelta()
+                    self.additional_time_difference = timedelta(seconds=5)
             #DELETE PLAYER DATA/OBJECTS IN TEAMSž
 
 
@@ -198,7 +201,7 @@ class LoLMatch(Match, Constants):
 
         if self.active_game_id:
             if self.main_time_difference > timedelta(seconds=5):
-                time_string = self.get_time(self.main_time_difference)
+                time_string = self.get_time(self.main_time_difference + self.additional_time_difference)
                 r = self.get_last_data(self.active_game_id, time_string)
             else:
                 time_string = self.get_time()
@@ -217,11 +220,12 @@ class LoLMatch(Match, Constants):
 
             try:
                 data3 = json.loads(r.content)
+                print(data3)
                 if data3["esportsGameId"] == self.active_game_id:
                     if "frames" in data3.keys():
                         self.raw_data_level = "high"
                         self.raw_data_three = data3
-            except json.decoder.JSONDecodeError:
+            except (json.decoder.JSONDecodeError, KeyError):
                 pass
 
 
@@ -231,7 +235,8 @@ class LoLMatch(Match, Constants):
                    "scheme": "https",
                    "origin": "https://lolesports.com",
                    "referer": "https://lolesports.com",
-                   "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+                   "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                                 " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
                    "x-api-key": "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"}
         url2 = fr"https://feed.lolesports.com/livestats/v1/window/{game_id}?startingTime={time_stamp}"
         r = requests.get(url2, headers=headers)
@@ -258,8 +263,8 @@ class LoLMatch(Match, Constants):
                                                                             player["championId"],
                                                                             "blue",
                                                                             self.blue_team.name,
-                                                                            self.blue_team.id,
-                                                                            self.dirs)
+                                                                            self.blue_team.id
+                                                                            )
                 self.blue_team.players_name_dict[player["summonerName"]] = self.blue_team.players[player["participantId"]]
             for player in self.raw_data_three["gameMetadata"]["redTeamMetadata"]["participantMetadata"]:
                 self.red_team.players[player["participantId"]] = LolPlayer(player["summonerName"],
@@ -269,8 +274,8 @@ class LoLMatch(Match, Constants):
                                                                            player["championId"],
                                                                            "red",
                                                                            self.blue_team.name,
-                                                                           self.blue_team.id,
-                                                                           self.dirs)
+                                                                           self.blue_team.id
+                                                                           )
                 self.red_team.players_name_dict[player["summonerName"]] = self.red_team.players[player["participantId"]]
             self.third_data_assigned = True
 
@@ -311,40 +316,7 @@ class LoLMatch(Match, Constants):
                 self.red_team.players[red_player["participantId"]].current_health = red_player["currentHealth"]
                 self.red_team.players[red_player["participantId"]].max_health = red_player["maxHealth"]
 
-    def game_number_error_check(self):
-        # this is part where i want to log if number of games that are completed and in progress is higer than the
-        # number of wins needed to win the series (like 3 games for best of 5, 2 games for best of 3 etc
-        if self.raw_data_level in ["high", "medium"]:
-            wins_to_finish = math.ceil(self.games_count/2)
-            games_played_count = 0
-            for game in self.games_list.values():
-                if game["state"] in ["completed", "inProgress"]:
-                    games_played_count += 1
-            if games_played_count > wins_to_finish:
-                with open(f"{self.dirs['game_log']}", "a") as filex:
-                    filex.write(f"Detected game number error. count: {self.games_count},games played: {games_played_count},"
-                                f"{self.team_1_name} vs {self.team_2_name} ")
-                    filex.write("\n")
 
-
-    def game_team_colors_error_check(self):
-        if self.raw_data_level == ["high"]:
-            error_state = False
-            for team in self.games_list[self.active_game_id]:
-                if team["side"] == "blue":
-                    team_id = team["id"]
-                    if team_id != self.raw_data_three["gameMetadata"]["blueTeamMetadata"]["esportsTeamId"]:
-                        error_state = True
-                elif team["side"] == "red":
-                    team_id = team["id"]
-                    if team_id != self.raw_data_three["gameMetadata"]["redTeamMetadata"]["esportsTeamId"]:
-                        error_state = True
-            if error_state:
-                with open(f"{self.dirs['game_log']}", "a") as filex:
-                    filex.write(f"found wrong team colors in {self.team_1_name} vs {self.team_2_name} match."
-                                f"active game id is {self.active_game_id} and data3 game id is"
-                                f" {self.raw_data_three['esportsGameId']}")
-                    filex.write("\n")
 
 
 
@@ -362,8 +334,8 @@ class LoLMatch(Match, Constants):
 
 
 if __name__ == "__main__":
-    with open(r"C:\Users\Davor\PycharmProjects\discord_esport_tracker\assets\dirs.json", "r") as fp:
-        dirs = json.load(fp)
+    # with open(r"C:\Users\Davor\PycharmProjects\discord_esport_tracker\assets\dirs.json", "r") as fp:
+    #     dirs = json.load(fp)
     url = "https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=en-GB&leagueId=98767991302996019%2C100695891328981122%2C105266098308571975%2C107407335299756365%2C105266111679554379%2C98767991332355509%2C98767991310872058%2C98767991355908944%2C105709090213554609%2C98767991299243165%2C98767991349978712%2C101382741235120470%2C98767991314006698%2C104366947889790212%2C98767991343597634%2C98767975604431411%2C98767991295297326%2C105266101075764040%2C105266103462388553%2C105266108767593290%2C105266106309666619%2C105266094998946936%2C105266088231437431%2C105266074488398661%2C105266091639104326%2C99332500638116286%2C107921249454961575%2C107898214974993351%2C98767991335774713%2C108203770023880322%2C105549980953490846%2C101097443346691685%2C107582580502415838%2C107581050201097472%2C107603541524308819%2C107581669166925444%2C107598636564896416%2C107598951349015984%2C107582133359724496%2C107577980054389784%2C98767991325878492%2C108001239847565215"
     headers = {"authority": "esports-api.lolesports.com",
                "method": "GET",
@@ -381,7 +353,7 @@ if __name__ == "__main__":
     counter = 0
     game_objs = {}
     for y in lol_accepted_games:
-        game_objs[counter] = LoLMatch(data=y,dirs_dict=dirs)
+        game_objs[counter] = LoLMatch(data=y)
         print(game_objs[counter].raw_data_level)
         counter +=1
 
