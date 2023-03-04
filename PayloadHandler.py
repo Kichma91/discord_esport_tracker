@@ -13,17 +13,19 @@ import pandas as pd
 from utilities import  client_id, secret , steam_auth_key
 from scrapers.csgo_scraper import CSGOscraper
 from scrapers.Scraper import AsyncScraper
+from constants import Constants
 
-class PayloadHandler():
+class PayloadHandler(Constants):
     def __init__(self, update_dota_league = False):
-        with open(r"C:\Users\Davor\PycharmProjects\discord_esport_tracker\assets\dirs.json", "r") as fp:  # directories for images and tables
-            self.dirs = json.load(fp)
+        super().__init__(type="payload")
+
         self.main_scraper = AsyncScraper()
         # self.csgo_scraper = CSGOscraper()
         if update_dota_league:
             self.update_dota_league_data()
-        self.dota_league_data = pd.read_csv(fr"{self.dirs['dota2_assets']}/dota_leagues_data.csv")
+        self.dota_league_data = pd.read_csv(self.dota_league_data_file)
         self.game_controller = GameController
+        self.main_loop()
 
 
 
@@ -42,7 +44,7 @@ class PayloadHandler():
             link = image_element["src"]
             try:
                 urllib.request.urlretrieve(link,
-                                           fr"{self.dirs['dota2_tournament']}\{image_element.get('title')}.png")
+                                           fr"{self.dota_league_images_dir}\{image_element.get('title')}.png")
             except:
                 pass
 
@@ -57,10 +59,10 @@ class PayloadHandler():
         df = pd.read_html(r.content)
         df = df[0]
         df["League"] = id_list
-        df.to_csv(fr"{self.dirs['dota2_assets']}/dota_leagues_data.csv")
+        df.to_csv(self.dota_league_data_file)
 
 
-    def filter_data(self):
+    def scrape_and_filter_data(self):
         # csgo_data = self.csgo_scraper.run_scrape()
 
         dota_accepted_games = []
@@ -92,13 +94,13 @@ class PayloadHandler():
     def main_loop(self):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         while True:
-            accepted_games = self.filter_data()
+            accepted_games = self.scrape_and_filter_data()
             print(accepted_games)
             time.sleep(5)
 
 if __name__ == "__main__":
     handler = PayloadHandler()
-    handler.main_loop()
+
 
 
 

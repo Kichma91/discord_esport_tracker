@@ -2,8 +2,11 @@ import os
 import urllib.request
 import time
 
-class LolPlayer():
-    def __init__(self, name, game_id, esports_id, role, champion_id, color, team_name, team_id,dirs):
+from constants import Constants
+
+class LolPlayer(Constants):
+    def __init__(self, name, game_id, esports_id, role, champion_id, color, team_name, team_id):
+        super().__init__(type="lol")
         self.name = name
         self.game_id = game_id
         self.esports_id = esports_id
@@ -21,8 +24,7 @@ class LolPlayer():
         self.creep_score = 0
         self.current_health = 0
         self.max_health = 0
-        self.dirs = dirs
-        self.hero_image_dir = self.dirs["lol_heroes"]
+
         self.download_hero_image()
 
     def download_hero_image(self):

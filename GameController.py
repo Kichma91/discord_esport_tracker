@@ -2,14 +2,13 @@ import json
 
 from game_objects.dota_game import DotaMatch
 from game_objects.lol_game import LoLMatch
+from constants import Constants
 
 
-
-class GameController():
+class GameController(Constants):
     def __init__(self):
+        super().__init__(type="controller")
         self.active_game_list = {}
-        with open(r"C:\Users\Davor\PycharmProjects\discord_esport_tracker\assets\dirs.json", "r") as fp:  # directories for images and tables
-            self.dirs = json.load(fp)
 
     def create_games(self,game_list):
 
@@ -26,7 +25,7 @@ class GameController():
 
             elif game_name == "dota2":
                 game_key = f'dota2_{game_data["league_id"]}_{game_data["match_id"]}'
-                self.active_game_list[game_key] = DotaMatch(game_data,self.dirs)
+                self.active_game_list[game_key] = DotaMatch(game_data)
             elif game_name == "valorant":
                 pass
 

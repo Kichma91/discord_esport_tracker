@@ -2,8 +2,8 @@ from game_objects.main_game import Match
 
 
 class DotaMatch(Match):
-    def __init__(self, data, dirs_dict, expire_time = 5):
-        super().__init__(data=data, dirs_dict=dirs_dict,expire_time=expire_time)
+    def __init__(self, data, expire_time = 5):
+        super().__init__(data=data ,expire_time=expire_time)
         self.game_key = f'dota2_{data["league_id"]}_{data["match_id"]}'
         self.game_type = "dota2"
 

@@ -4,11 +4,10 @@ import numpy as np
 
 
 class Match():
-    def __init__(self, data, dirs_dict,  expire_time):
+    def __init__(self, data, expire_time):
         self.last_scan_time = datetime.now()
         self.first_scan_time = datetime.now()
         self.expire_time = timedelta(minutes= expire_time)
-        self.dirs = dirs_dict
         self.expired_status = False
         self.raw_data = data
         self.league_name = ""

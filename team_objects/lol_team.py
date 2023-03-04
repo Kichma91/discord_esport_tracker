@@ -1,9 +1,12 @@
 import urllib.request
 import time
 import os
+from constants import Constants
 
-class LolTeam():
-    def __init__(self, name, code, image_link, image_name, game_wins, dirs):
+
+class LolTeam(Constants):
+    def __init__(self, name, code, image_link, image_name, game_wins):
+        super().__init__(type="lol")
         self.name = name
         self.code = code
         self.image_link = image_link
@@ -20,8 +23,6 @@ class LolTeam():
         self.barons = 0
         self.total_kills = 0
         self.dragons = []
-        self.dirs = dirs
-        self.team_image_dir = self.dirs["lol_teams"]
         self.download_team_image()
 
     def download_team_image(self):

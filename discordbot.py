@@ -9,6 +9,7 @@ import discord
 
 from scrapers.Scraper import AsyncScraper
 from utilities import discord_bot_token
+from constants import Constants
 
 
 

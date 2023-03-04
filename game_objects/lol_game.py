@@ -10,9 +10,10 @@ import math
 from game_objects.main_game import Match
 from team_objects.lol_team import LolTeam
 from player_objects.lol_player import LolPlayer
+from constants import Constants
 
 
-class LoLMatch(Match):
+class LoLMatch(Match, Constants):
     """
     Main object for a game in LoL that stores all the info and functions connected to that single MATCH
     Lol has a MATCH between 2 teams and it lasts for x number of GAMES(like best of 5).
@@ -28,12 +29,12 @@ class LoLMatch(Match):
     stamp which defines which moment of the game are you searching for( or better say a dict of 6 seconds of states).
 
     """
-    def __init__(self, data, dirs_dict, expire_time=5):
+    def __init__(self, data, expire_time=5):
         # info like self.raw data is stored in main game object with super
-        super().__init__(data=data, dirs_dict=dirs_dict,expire_time=expire_time)
+        Match.__init__(self, data=data, expire_time=expire_time)
+        Constants.__init__(self, type="lol")
         self.game_key = f'lol_{data["league"]["name"]}_{data["match"]["teams"][0]["name"]}_{data["match"]["teams"][1]["name"]}'
         self.game_type = "lol"
-        self.league_image_dir = self.dirs["lol_leagues"]
 
         self.block_name = self.raw_data["blockName"]
         self.league_name = self.raw_data["league"]["name"]
@@ -65,11 +66,6 @@ class LoLMatch(Match):
                 team_game_wins = team["result"]["gameWins"]
                 self.teams[team_name] = LolTeam(name=team_name, code=team_code, image_link=team_image_link,
                                                 image_name=team_image_name, game_wins=team_game_wins, dirs=self.dirs)
-
-
-
-
-
         # first assign immediately makes full data creation from first and secondary data
         self.first_assign()
 
