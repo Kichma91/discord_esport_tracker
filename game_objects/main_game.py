@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 import json
+import numpy as np
+
 
 class Match():
     def __init__(self, data, dirs_dict,  expire_time):
@@ -13,6 +15,7 @@ class Match():
         self.team_1_name = ""
         self.team_2_name = ""
         self.raw_data_level = ""
+        self.game_type = ""
 
 
 

@@ -3,7 +3,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 import requests
 from requests.structures import CaseInsensitiveDict
-
+import time
 import aiohttp
 
 from utilities import  client_id, secret , steam_auth_key
@@ -19,6 +19,7 @@ class AsyncScraper():
         self.game_changes = []
         self.active_game_list_clean = []
         self.game_changes_clean = []
+        self.data = []
         print(self.client_id_twitch)
         print(self.auth_twitch)
 
@@ -87,5 +88,29 @@ class AsyncScraper():
                 html = await resp.text()
                 data = json.loads(html)
                 return data
+
+    async def scrape_all(self):
+        tasks = []
+        self.data = []
+        self.loop = asyncio.get_event_loop()
+        tasks.append((self.loop.create_task(self.get_valorant_data()),"valorant"))
+        tasks.append((self.loop.create_task(self.get_dota_data()),"dota"))
+        tasks.append((self.loop.create_task(self.get_lol_data()),"lol"))
+
+        for task,game_name in tasks:
+            data = await task
+            self.data.append((game_name,data))
+
+
+
+
+if __name__ == "__main__":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    scraper = AsyncScraper()
+    while True:
+        asyncio.run(scraper.scrape_all())
+        print(scraper.data["lol"], scraper.data["valorant"], scraper.data["dota"])
+        time.sleep(5)
+
 
 

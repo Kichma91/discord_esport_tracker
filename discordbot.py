@@ -9,7 +9,7 @@ import discord
 
 from scrapers.Scraper import AsyncScraper
 from utilities import discord_bot_token
-from Reader import Reader
+
 
 
 """
@@ -183,7 +183,7 @@ class DiscordClient(discord.Client):
 
 
 
-    async def scrape_data(self):
+    async def main_loop(self):
         """
         Main process of discord bot. It scrapes the data using functions in Scraper.py.
         When data is returned, it sends it to the second process for parsing and sleeps xy seconds,
@@ -191,33 +191,13 @@ class DiscordClient(discord.Client):
         """
         # this is also inherited discord.client function - waits till internal cache is
         await self.wait_until_ready()
-        game_data = {
-            # "valorant": self.scraper.get_valorant_data,
-            "lol": self.scraper.get_lol_data,
-            "dota2":self.scraper.get_dota_data
-        }
-        while True:
-            tasks = []
-            for game_name, scrape_func in game_data.items():
-                tasks.append((self.loop.create_task(scrape_func()),game_name))
-            conn_list = []
-            for task, game_name2 in tasks:
-                data = await task
-                conn_list.append((game_name2,data))
-            print("waiting to send data to second process")
-            start_time = time.time()
-            # with open("PICK_PHASE_DATA.json","w") as fp:
-            #     json.dump(conn_list,fp)
-            self.conn_send.send(conn_list)
-            print("waited  %s seconds to send data" % (time.time() - start_time))
-            print("Sent data to other process, now sleeping ",self.server_data["scrape_wait_time"], " seconds")
-            await self.upload_images()  ############################################################################maybe not the best position ?
-            await asyncio.sleep(self.server_data["scrape_wait_time"])
 
+        while True:
+            pass
 
     async def setup_hook(self) -> None:
         # needed function to create a task for bot that will be looped
-        self.bg_task = self.loop.create_task(self.scrape_data())
+        self.bg_task = self.loop.create_task(self.main_loop())
         # self.bg_task_two = self.loop.create_task(self.broadcast_changes())
 
 

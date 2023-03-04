@@ -7,7 +7,7 @@ import urllib.request
 import time
 import math
 
-from main_game import Match
+from game_objects.main_game import Match
 from team_objects.lol_team import LolTeam
 from player_objects.lol_player import LolPlayer
 
@@ -46,6 +46,7 @@ class LoLMatch(Match):
         self.players = {}
         self.blue_team = ""
         self.red_team = ""
+        self.next_game = ""
         self.teams_id_dict = {}
         self.active_game_id = None
         self.match_finished = False
@@ -82,10 +83,8 @@ class LoLMatch(Match):
         self.update_player_data()
 
     def update_data(self):
-        # if match_finished true
-        # if end game state and datetime < 2 min
-        # elif endgame state and datetime > 2 min
-        # else
+        if self.match_finished or self.finished_time:
+            pass
 
 
         self.get_additional_data()
@@ -101,8 +100,15 @@ class LoLMatch(Match):
 
     def detect_end_game(self):
         self.get_additional_data()
+        matches_to_win = math.ceil(self.games_count / 2)
+        for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
+            if team["result"]["gameWins"] >= matches_to_win:
+                self.match_finished = True
+                self.match_finished_time = datetime.now()
+                return
         if (self.raw_data_two["data"]["event"]["match"]["games"][self.active_game_id]["state"] != "inProgress"):
             print("FINISHED GAME")
+            self.get_next_game_data()
             self.raw_data_three = {}
             self.raw_data_level = "low"
             self.third_data_assigned = False
@@ -114,11 +120,17 @@ class LoLMatch(Match):
             self.main_time_difference = timedelta()
             self.additional_time_difference = timedelta(seconds=5)
             #DELETE PLAYER DATA/OBJECTS IN TEAMSž
-        matches_to_win = math.ceil(self.games_count/2)
-        for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
-            if team["result"]["gameWins"] >= matches_to_win:
-                self.match_finished = True
+
+
                 #create match finished image
+
+    def get_next_game_data(self):
+        active_game_detected = False
+        for game in self.raw_data_two["data"]["event"]["match"]["games"]:
+            if active_game_detected:
+                self.next_game = game
+            if game["id"] == self.active_game_id:
+                active_game_detected = True
 
 
 

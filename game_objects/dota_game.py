@@ -1,4 +1,4 @@
-from main_game import Match
+from game_objects.main_game import Match
 
 
 class DotaMatch(Match):
