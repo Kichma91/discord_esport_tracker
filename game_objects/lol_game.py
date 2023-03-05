@@ -126,10 +126,12 @@ class LoLMatch(Match, Constants):
     def get_next_game_data(self):
         active_game_detected = False
         for game in self.raw_data_two["data"]["event"]["match"]["games"]:
-            if active_game_detected:
-                self.next_game = game
             if game["id"] == self.active_game_id:
                 active_game_detected = True
+            if active_game_detected:
+                self.next_game = game
+                break
+
 
 
 
@@ -220,7 +222,6 @@ class LoLMatch(Match, Constants):
 
             try:
                 data3 = json.loads(r.content)
-                print(data3)
                 if data3["esportsGameId"] == self.active_game_id:
                     if "frames" in data3.keys():
                         self.raw_data_level = "high"

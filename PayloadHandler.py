@@ -100,7 +100,7 @@ class PayloadHandler(Constants):
 
             self.game_controller.create_images()
 
-            time.sleep(5)
+            time.sleep(10)
 
 if __name__ == "__main__":
     handler = PayloadHandler()
