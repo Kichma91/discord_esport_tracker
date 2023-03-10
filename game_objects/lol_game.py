@@ -77,22 +77,25 @@ class LoLMatch(Match, Constants):
         self.get_detailed_match_data()
         self.assign_third_data()
         self.update_player_data()
+        self.get_next_game_data()
 
     def update_data(self):
-        if self.match_finished or self.finished_time:
-            pass
+        if self.match_finished or self.finished_state:
+            return
 
-
-        self.get_additional_data()
-        if self.secondary_data_assigned:
-            self.detect_end_game()
         else:
-            self.assign_second_data()
+            self.get_additional_data()
+            if self.active_game_id:
+                self.detect_end_game()
+            else:
+                self.assign_second_data()
+                if not self.active_game_id:
+                    self.get_next_game_data()
 
-        self.get_detailed_match_data()
-        if not self.third_data_assigned:
-            self.assign_third_data()
-        self.update_player_data()
+            self.get_detailed_match_data()
+            if not self.third_data_assigned:
+                self.assign_third_data()
+            self.update_player_data()
 
     def detect_end_game(self):
         self.get_additional_data()
@@ -108,29 +111,40 @@ class LoLMatch(Match, Constants):
 
                     print("FINISHED GAME")
                     self.get_next_game_data()
-                    self.raw_data_three = {}
-                    self.raw_data_level = "low"
-                    self.third_data_assigned = False
-                    self.secondary_data_assigned = False
-                    self.active_game_id = None
+
                     # create finished image
                     self.finished_time = datetime.now()
                     self.finished_state = True
-                    self.main_time_difference = timedelta()
-                    self.additional_time_difference = timedelta(seconds=5)
+                    return
             #DELETE PLAYER DATA/OBJECTS IN TEAMSž
 
 
                 #create match finished image
 
+    def reset_data(self):
+        self.main_time_difference = timedelta()
+        self.additional_time_difference = timedelta(seconds=5)
+        self.raw_data_three = {}
+        self.raw_data_level = "low"
+        self.third_data_assigned = False
+        self.secondary_data_assigned = False
+        self.active_game_id = None
+        self.finished_state = False
+
     def get_next_game_data(self):
         active_game_detected = False
-        for game in self.raw_data_two["data"]["event"]["match"]["games"]:
-            if game["id"] == self.active_game_id:
-                active_game_detected = True
-            if active_game_detected:
-                self.next_game = game
-                break
+        if self.active_game_id:
+            for game in self.raw_data_two["data"]["event"]["match"]["games"]:
+                if game["id"] == self.active_game_id:
+                    active_game_detected = True
+                if active_game_detected:
+                    self.next_game = game
+                    break
+        else:
+            for game in self.raw_data_two["data"]["event"]["match"]["games"]:
+                if game["state"] == "unstarted":
+                    self.next_game = game
+
 
 
 
@@ -171,7 +185,7 @@ class LoLMatch(Match, Constants):
             for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
                 self.teams[team["name"]].id = team["id"]
                 self.teams_id_dict[team["id"]] = self.teams[team["name"]]
-
+            self.secondary_data_assigned = True
             self.streams = self.raw_data_two["data"]["event"]["streams"]
             for game in self.raw_data_two["data"]["event"]["match"]["games"]:
                 if game["state"] == "inProgress":
@@ -184,7 +198,8 @@ class LoLMatch(Match, Constants):
                                 elif team["side"] == "red":
                                     self.red_team = team_object
                                 team_object.color = team["side"]
-                    self.secondary_data_assigned = True
+                    return
+
 
     def download_league_image(self):
         league_image_dir_listed = os.listdir(self.league_image_dir)

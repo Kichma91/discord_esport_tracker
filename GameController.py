@@ -40,6 +40,12 @@ class GameController(Constants):
             if game.game_type == "lol":
                 self.lol_image_creator.create_image(game)
 
+    def remove_finished_states(self):
+        pass
+
+    def remove_finished_games(self):
+        pass
+
 
 
 

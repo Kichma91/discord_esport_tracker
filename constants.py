@@ -8,6 +8,7 @@ class Constants():
             self.league_image_dir ="assets/lol/league_images"
             self.created_images_dir = "game_stats/lol"
             self.active_game_template_file = "assets/lol/template_full.png"
+            self.partial_game_template_file = "assets/lol/template_partial.png"
         elif type == "dota":
             pass
         elif type == "valorant":
