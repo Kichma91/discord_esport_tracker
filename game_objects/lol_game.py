@@ -74,9 +74,9 @@ class LoLMatch(Match, Constants):
         self.get_additional_data()
         self.assign_second_data()
         self.download_league_image()
-        self.get_detailed_match_data()
-        self.assign_third_data()
-        self.update_player_data()
+        # self.get_detailed_match_data()
+        # self.assign_third_data()
+        # self.update_player_data()
         self.get_next_game_data()
 
     def update_data(self):
@@ -132,8 +132,9 @@ class LoLMatch(Match, Constants):
         self.finished_state = False
 
     def get_next_game_data(self):
-        active_game_detected = False
+
         if self.active_game_id:
+            active_game_detected = False
             for game in self.raw_data_two["data"]["event"]["match"]["games"]:
                 if game["id"] == self.active_game_id:
                     active_game_detected = True
@@ -141,9 +142,12 @@ class LoLMatch(Match, Constants):
                     self.next_game = game
                     break
         else:
+            next_game_detected = False
             for game in self.raw_data_two["data"]["event"]["match"]["games"]:
                 if game["state"] == "unstarted":
                     self.next_game = game
+
+
 
 
 

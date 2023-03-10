@@ -21,12 +21,12 @@ class LoLImg(Constants):
                             "league": (255, 255, 255)}
         self.game_object = None
         self.partial_x_positions = {
-            "league_img": 340,
+            "league_img": 240,
             "league_name": 330,
             "league_block": 330,
             "league_games_played": 600,
-            "blue_team_image": 35,
-            "blue_team_name": 110,
+            "blue_team_image": 25,
+            "blue_team_name": 115,
             "blue_team_wins": 260,
             "red_team_image": 480,
             "red_team_name": 555,
@@ -37,9 +37,9 @@ class LoLImg(Constants):
             "league_name": 15,
             "league_block": 45,
             "league_games_played": 25,
-            "team_image": 85,
-            "team_name": 100,
-            "team_wins": 100
+            "team_image": 87,
+            "team_name": 110,
+            "team_wins": 105
         }
         self.active_x_positions = {
             "league_img": 235,
@@ -283,17 +283,70 @@ class LoLImg(Constants):
                           text=self.game_object.league_name, font=self.team_name_font, fill=self.font_colors["main"])
         im1_redrawer.text((self.partial_x_positions["league_games_played"], self.partial_y_positions["league_games_played"]),
                           text=game_number, font=self.league_name_font, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["blue_team_name"], self.partial_y_positions["team_name"]),
-                          text=team_data["blue"].name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
+        blue_team_name, red_team_name, blue_edited, red_edited = self.create_team_names(team_data)
+        if blue_edited:
+            blue_y = self.partial_y_positions["team_name"] - 10
+        else:
+            blue_y = self.partial_y_positions["team_name"]
+
+        if red_edited:
+            red_y = self.partial_y_positions["team_name"] - 10
+        else:
+            red_y = self.partial_y_positions["team_name"]
+
+
+        im1_redrawer.text((self.partial_x_positions["blue_team_name"], blue_y),
+                          text=blue_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
         im1_redrawer.text((self.partial_x_positions["blue_team_wins"], self.partial_y_positions["team_wins"]),
                           text=str(team_data["blue"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["red_team_name"], self.partial_y_positions["team_name"]),
-                          text=team_data["red"].name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
+        im1_redrawer.text((self.partial_x_positions["red_team_name"], red_y),
+                          text=red_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
         im1_redrawer.text((self.partial_x_positions["red_team_wins"], self.partial_y_positions["team_wins"]),
                           text=str(team_data["red"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
 
         im1.show()
         im1.save(f"{self.created_images_dir}/{self.game_object.game_key}.png")
+
+
+    def create_team_names(self, team_dict):
+        blue_team_name = team_dict["blue"].name
+        red_team_name = team_dict["red"].name
+        blue_edited = False
+        red_edited = False
+        if len(blue_team_name) > 17:
+            blue_edited = True
+            clusters = []
+            cluster_string = ""
+            team_name_split = blue_team_name.split(" ")
+            for word in team_name_split:
+                if len(word) + len(cluster_string) > 17:
+                    cluster_string_2 = cluster_string[1:]
+                    clusters.append(cluster_string_2)
+                    cluster_string = ""
+                    cluster_string = cluster_string + " " + word
+                else:
+                    cluster_string = cluster_string + " " + word
+
+
+            blue_team_name = "\n".join(clusters)
+        if len(red_team_name) > 17:
+            red_edited = True
+            clusters = []
+            cluster_string = ""
+            team_name_split = blue_team_name.split(" ")
+            for word in team_name_split:
+                if len(word) + len(cluster_string) > 17:
+                    cluster_string_2 = cluster_string[1:]
+                    clusters.append(cluster_string_2)
+                    cluster_string = ""
+                    cluster_string = cluster_string + " " + word
+                else:
+                    cluster_string = cluster_string + " " + word
+
+
+            red_team_name = "\n".join(clusters)
+        print (red_team_name,blue_team_name, blue_edited, red_edited)
+        return blue_team_name, red_team_name, blue_edited, red_edited
 
 
 
