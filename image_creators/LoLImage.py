@@ -26,10 +26,10 @@ class LoLImg(Constants):
             "league_block": 330,
             "league_games_played": 600,
             "blue_team_image": 25,
-            "blue_team_name": 115,
+            "blue_team_name": 112,
             "blue_team_wins": 260,
-            "red_team_image": 480,
-            "red_team_name": 555,
+            "red_team_image": 650,
+            "red_team_name": 490,
             "red_team_wins": 460
         }
         self.partial_y_positions = {
@@ -128,11 +128,12 @@ class LoLImg(Constants):
         im1_redrawer = ImageDraw.Draw(im1)
 
         league_img_file = fr"{self.league_image_dir}/{self.game_object.league_image_name}"
-        league_img = Image.open(league_img_file)
-        league_img = league_img.resize((80, 80))
+
         try:
+            league_img = Image.open(league_img_file)
+            league_img = league_img.resize((80, 80))
             im1.paste(league_img, (self.active_x_positions["league_img"], self.active_y_positions["league_img"]), league_img)
-        except ValueError:
+        except (ValueError, FileNotFoundError):
             print(fr"BAD LEAGUE IMAGE FOR {self.game_object.league_image_name}")
 
         im1_redrawer.text((self.active_x_positions["league_block"], self.active_y_positions["league_block"]),
@@ -161,7 +162,10 @@ class LoLImg(Constants):
             team_img_file = fr"{self.team_image_dir}/{team.image_name}"
             team_img = Image.open(team_img_file)
             team_img = team_img.resize((70,70))
-            im1.paste(team_img, (self.active_x_positions["team_image"], y_positions["team_image"]), team_img)
+            try:
+                im1.paste(team_img, (self.active_x_positions["team_image"], y_positions["team_image"]), team_img)
+            except ValueError:
+                pass
             if len(team.name) > 20:
                 team_font = self.team_name_font_smaller
             else:
@@ -239,11 +243,41 @@ class LoLImg(Constants):
                 im1_redrawer.text((x_temp, y_positions["names"][i]+17),
                                   text= str(player.level), font=self.player_hero_font,
                                   fill=self.font_colors["main"])
+        finished_string = ""
+        if self.game_object.match_finished:
+            winner_color = self.game_object.winner_team.color
+            winner_team_name = self.game_object.winner_team.name
+            x_coord = 405
+            if winner_color == "blue":
+                y_coord = 115
+            else:
+                y_coord = 532
+            im1_redrawer.text((x_coord, y_coord),
+                              text="GAME WON", font=self.player_role_font,
+                              fill=self.font_colors[winner_color])
+            im1_redrawer.text((20, 10),
+                              text=f"GAME FINISHED, WINNERS:\n{winner_team_name}", font=self.player_role_font,
+                              fill=self.font_colors["main"])
+            finished_string = "FINISHED-"
+        elif self.game_object.finished_state:
+            winner_color = self.game_object.winner_team.color
+            x_coord = 405
+            if winner_color == "blue":
+                y_coord = 115
+            else:
+                y_coord = 532
+            im1_redrawer.text(( x_coord,y_coord ),
+                              text="GAME WON", font=self.player_role_font,
+                              fill=self.font_colors[winner_color])
+            im1_redrawer.text((20, 30),
+                              text="WAITING NEXT GAME", font=self.player_role_font,
+                              fill=self.font_colors["main"])
 
         im1.show()
-        im1.save(f"{self.created_images_dir}/{self.game_object.game_key}.png")
+        im1.save(f"{self.created_images_dir}/{finished_string}{self.game_object.game_key}.png")
 
     def partial_image_data_parse(self):
+
         data = self.game_object.next_game
         teams = {"red": "", "blue": ""}
         for team in data["teams"]:
@@ -254,98 +288,147 @@ class LoLImg(Constants):
 
 
     def create_partial_image(self):
-        team_data = self.partial_image_data_parse()
-        blue_team_img = fr"{self.team_image_dir}/{team_data['blue'].image_name}"
-        blue_team_img = Image.open(blue_team_img)
-        blue_team_img = blue_team_img.resize((70,70))
-        red_team_img = fr"{self.team_image_dir}/{team_data['red'].image_name}"
-        red_team_img = Image.open(red_team_img)
-        red_team_img = red_team_img.resize((70,70))
-        game_number = f'{team_data["red"].game_wins + team_data["blue"].game_wins + 1} / {self.game_object.games_count}'
-        im1 = self.partial_game_template.copy()
-        im1_redrawer = ImageDraw.Draw(im1)
-        league_img_file = fr"{self.league_image_dir}/{self.game_object.league_image_name}"
-        league_img = Image.open(league_img_file)
-        league_img = league_img.resize((80, 80))
-        try:
-            im1.paste(league_img, (self.partial_x_positions["league_img"], self.partial_y_positions["league_img"]), league_img)
-        except ValueError:
-            print(fr"BAD LEAGUE IMAGE FOR {self.game_object.league_image_name}")
-
-        im1.paste(blue_team_img, (self.partial_x_positions["blue_team_image"], self.partial_y_positions["team_image"]),
-                  blue_team_img)
-        im1.paste(red_team_img, (self.partial_x_positions["red_team_image"], self.partial_y_positions["team_image"]),
-                  red_team_img)
-
-        im1_redrawer.text((self.partial_x_positions["league_name"], self.partial_y_positions["league_name"]),
-                          text=self.game_object.block_name, font=self.league_name_font, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["league_block"], self.partial_y_positions["league_block"]),
-                          text=self.game_object.league_name, font=self.team_name_font, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["league_games_played"], self.partial_y_positions["league_games_played"]),
-                          text=game_number, font=self.league_name_font, fill=self.font_colors["main"])
-        blue_team_name, red_team_name, blue_edited, red_edited = self.create_team_names(team_data)
-        if blue_edited:
-            blue_y = self.partial_y_positions["team_name"] - 10
+        if self.game_object.next_game == "":
+            return
         else:
-            blue_y = self.partial_y_positions["team_name"]
+            team_data = self.partial_image_data_parse()
+            blue_team_img = fr"{self.team_image_dir}/{team_data['blue'].image_name}"
+            blue_team_img = Image.open(blue_team_img)
+            blue_team_img = blue_team_img.resize((70,70))
+            red_team_img = fr"{self.team_image_dir}/{team_data['red'].image_name}"
+            red_team_img = Image.open(red_team_img)
+            red_team_img = red_team_img.resize((70,70))
+            game_number = f'{team_data["red"].game_wins + team_data["blue"].game_wins + 1} / {self.game_object.games_count}'
+            im1 = self.partial_game_template.copy()
+            im1_redrawer = ImageDraw.Draw(im1)
 
-        if red_edited:
-            red_y = self.partial_y_positions["team_name"] - 10
-        else:
-            red_y = self.partial_y_positions["team_name"]
+            try:
+                league_img_file = fr"{self.league_image_dir}/{self.game_object.league_image_name}"
+                league_img = Image.open(league_img_file)
+                league_img = league_img.resize((80, 80))
+                im1.paste(league_img, (self.partial_x_positions["league_img"], self.partial_y_positions["league_img"]), league_img)
+            except (ValueError, FileNotFoundError):
+                print(fr"BAD LEAGUE IMAGE FOR {self.game_object.league_image_name}")
+            try:
+                im1.paste(blue_team_img, (self.partial_x_positions["blue_team_image"], self.partial_y_positions["team_image"]),
+                          blue_team_img)
+                im1.paste(red_team_img, (self.partial_x_positions["red_team_image"], self.partial_y_positions["team_image"]),
+                          red_team_img)
+            except ValueError:
+                pass
+
+            im1_redrawer.text((self.partial_x_positions["league_name"], self.partial_y_positions["league_name"]),
+                              text=self.game_object.league_name, font=self.league_name_font, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["league_block"], self.partial_y_positions["league_block"]),
+                              text=self.game_object.block_name, font=self.team_name_font, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["league_games_played"], self.partial_y_positions["league_games_played"]),
+                              text=game_number, font=self.league_name_font, fill=self.font_colors["main"])
+            blue_team_name, red_team_name, blue_edited, red_edited = self.create_team_names(team_data)
+            if blue_edited:
+                blue_y = self.partial_y_positions["team_name"] - 15
+            else:
+                blue_y = self.partial_y_positions["team_name"]
+
+            if red_edited:
+                red_y = self.partial_y_positions["team_name"] - 15
+            else:
+                red_y = self.partial_y_positions["team_name"]
 
 
-        im1_redrawer.text((self.partial_x_positions["blue_team_name"], blue_y),
-                          text=blue_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["blue_team_wins"], self.partial_y_positions["team_wins"]),
-                          text=str(team_data["blue"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["red_team_name"], red_y),
-                          text=red_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
-        im1_redrawer.text((self.partial_x_positions["red_team_wins"], self.partial_y_positions["team_wins"]),
-                          text=str(team_data["red"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["blue_team_name"], blue_y),
+                              text=blue_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["blue_team_wins"], self.partial_y_positions["team_wins"]),
+                              text=str(team_data["blue"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["red_team_name"], red_y),
+                              text=red_team_name, font=self.team_name_font_smaller, fill=self.font_colors["main"])
+            im1_redrawer.text((self.partial_x_positions["red_team_wins"], self.partial_y_positions["team_wins"]),
+                              text=str(team_data["red"].game_wins), font=self.league_name_font, fill=self.font_colors["main"])
 
-        im1.show()
-        im1.save(f"{self.created_images_dir}/{self.game_object.game_key}.png")
+
+
+
+
+            finished_string = ""
+            if self.game_object.match_finished:
+                winner_color = self.game_object.winner_team.color
+                winner_team_name = self.game_object.winner_team.name
+                x_coord = 330
+                y_coord = 110
+                fill = self.font_colors[winner_color]
+                text_ = f"{winner_color.upper()} WIN"
+
+                im1_redrawer.text((x_coord, y_coord),
+                                  text= text_, font=self.player_name_font,
+                                  fill=fill)
+                im1_redrawer.text((20, 15),
+                                  text=f"GAME FINISHED, WINNERS:\n{winner_team_name}", font=self.player_role_font,
+                                  fill=self.font_colors["main"])
+                finished_string = "FINISHED-"
+
+
+            elif self.game_object.finished_state:
+                winner_color = self.game_object.winner_team.color
+                x_coord = 330
+                y_coord = 110
+                fill = self.font_colors[winner_color]
+                text_ = f"{winner_color.upper()} WIN"
+
+                im1_redrawer.text((x_coord, y_coord),
+                                  text=text_, font=self.player_name_font,
+                                  fill=fill)
+                im1_redrawer.text((20, 30),
+                                  text="WAITING NEXT GAME", font=self.player_role_font,
+                                  fill=self.font_colors["main"])
+            else:
+                im1_redrawer.text((350, 110),
+                                  text="LIVE", font=self.player_name_font,
+                                  fill=self.font_colors["main"])
+
+
+            im1.show()
+            im1.save(f"{self.created_images_dir}/{finished_string}{self.game_object.game_key}.png")
 
 
     def create_team_names(self, team_dict):
+        word_len = 14
         blue_team_name = team_dict["blue"].name
         red_team_name = team_dict["red"].name
         blue_edited = False
         red_edited = False
-        if len(blue_team_name) > 17:
+        if len(blue_team_name) > word_len:
             blue_edited = True
             clusters = []
             cluster_string = ""
             team_name_split = blue_team_name.split(" ")
             for word in team_name_split:
-                if len(word) + len(cluster_string) > 17:
+                if len(word) + len(cluster_string) > word_len:
                     cluster_string_2 = cluster_string[1:]
                     clusters.append(cluster_string_2)
                     cluster_string = ""
                     cluster_string = cluster_string + " " + word
                 else:
                     cluster_string = cluster_string + " " + word
+            clusters.append(cluster_string[1:])
 
 
             blue_team_name = "\n".join(clusters)
-        if len(red_team_name) > 17:
+        if len(red_team_name) > word_len:
             red_edited = True
             clusters = []
             cluster_string = ""
-            team_name_split = blue_team_name.split(" ")
+            team_name_split = red_team_name.split(" ")
             for word in team_name_split:
-                if len(word) + len(cluster_string) > 17:
+                if len(word) + len(cluster_string) > word_len:
                     cluster_string_2 = cluster_string[1:]
                     clusters.append(cluster_string_2)
                     cluster_string = ""
                     cluster_string = cluster_string + " " + word
                 else:
                     cluster_string = cluster_string + " " + word
-
+            clusters.append(cluster_string[1:])
 
             red_team_name = "\n".join(clusters)
-        print (red_team_name,blue_team_name, blue_edited, red_edited)
+
         return blue_team_name, red_team_name, blue_edited, red_edited
 
 

@@ -48,6 +48,7 @@ class LoLMatch(Match, Constants):
         self.blue_team = ""
         self.red_team = ""
         self.next_game = ""
+        self.winner_team = ""
         self.teams_id_dict = {}
         self.active_game_id = None
         self.match_finished = False
@@ -67,17 +68,21 @@ class LoLMatch(Match, Constants):
                 self.teams[team_name] = LolTeam(name=team_name, code=team_code, image_link=team_image_link,
                                                 image_name=team_image_name, game_wins=team_game_wins)
         # first assign immediately makes full data creation from first and secondary data
-        self.first_assign()
+        # self.first_assign()
 
 
-    def first_assign(self):
-        self.get_additional_data()
-        self.assign_second_data()
-        self.download_league_image()
-        # self.get_detailed_match_data()
-        # self.assign_third_data()
-        # self.update_player_data()
-        self.get_next_game_data()
+    # def first_assign(self):
+    #     self.get_additional_data()
+    #     self.assign_second_data()
+    #     self.download_league_image()
+    #     self.get_detailed_match_data()
+    #     self.assign_third_data()
+    #     self.update_player_data()
+    #     self.get_next_game_data()
+    #     self.detect_end_game(init=True)
+
+
+
 
     def update_data(self):
         if self.match_finished or self.finished_state:
@@ -89,37 +94,38 @@ class LoLMatch(Match, Constants):
                 self.detect_end_game()
             else:
                 self.assign_second_data()
-                if not self.active_game_id:
-                    self.get_next_game_data()
+
+            self.get_next_game_data()
 
             self.get_detailed_match_data()
             if not self.third_data_assigned:
                 self.assign_third_data()
             self.update_player_data()
 
+
     def detect_end_game(self):
-        self.get_additional_data()
         matches_to_win = math.ceil(self.games_count / 2)
         for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
             if team["result"]["gameWins"] >= matches_to_win:
+                print("FINISHED MATCH")
+                for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
+                    if team["result"]["gameWins"] != self.teams[team["name"]].game_wins:
+                        self.winner_team = self.teams[team["name"]]
+                        self.teams[team["name"]].game_wins = team["result"]["gameWins"]
                 self.match_finished = True
                 self.match_finished_time = datetime.now()
                 return
         for game in self.raw_data_two["data"]["event"]["match"]["games"]:
             if game["id"] == self.active_game_id:
                 if game["state"] != "inProgress":
-
                     print("FINISHED GAME")
-                    self.get_next_game_data()
-
-                    # create finished image
+                    for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
+                        if team["result"]["gameWins"] != self.teams[team["name"]].game_wins:
+                            self.winner_team = self.teams[team["name"]]
+                            self.teams[team["name"]].game_wins = team["result"]["gameWins"]
                     self.finished_time = datetime.now()
                     self.finished_state = True
                     return
-            #DELETE PLAYER DATA/OBJECTS IN TEAMSž
-
-
-                #create match finished image
 
     def reset_data(self):
         self.main_time_difference = timedelta()
@@ -130,31 +136,31 @@ class LoLMatch(Match, Constants):
         self.secondary_data_assigned = False
         self.active_game_id = None
         self.finished_state = False
+        self.blue_team = ""
+        self.red_team = ""
+        self.next_game = ""
+        self.winner_team = ""
+        self.teams_id_dict = {}
+        self.finished_time = None
 
     def get_next_game_data(self):
 
+        # if self.active_game_id and self.third_data_assigned:
+        #     active_game_detected = False
+        #     for game in self.raw_data_two["data"]["event"]["match"]["games"]:
+        #         if game["id"] == self.active_game_id:
+        #             active_game_detected = True
+        #         if active_game_detected:
+        #             self.next_game = game
+        #             break
         if self.active_game_id:
-            active_game_detected = False
             for game in self.raw_data_two["data"]["event"]["match"]["games"]:
                 if game["id"] == self.active_game_id:
-                    active_game_detected = True
-                if active_game_detected:
                     self.next_game = game
-                    break
         else:
-            next_game_detected = False
             for game in self.raw_data_two["data"]["event"]["match"]["games"]:
                 if game["state"] == "unstarted":
                     self.next_game = game
-
-
-
-
-
-
-
-
-
 
     def get_additional_data(self):
         """
@@ -188,6 +194,7 @@ class LoLMatch(Match, Constants):
             self.games_list = {game["id"]: game for game in self.raw_data_two["data"]["event"]["match"]["games"]}
             for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
                 self.teams[team["name"]].id = team["id"]
+                self.teams[team["name"]].game_wins = team["result"]["gameWins"]
                 self.teams_id_dict[team["id"]] = self.teams[team["name"]]
             self.secondary_data_assigned = True
             self.streams = self.raw_data_two["data"]["event"]["streams"]
@@ -374,7 +381,6 @@ if __name__ == "__main__":
     game_objs = {}
     for y in lol_accepted_games:
         game_objs[counter] = LoLMatch(data=y)
-        print(game_objs[counter].raw_data_level)
         counter +=1
 
     # game = game_objs.values()

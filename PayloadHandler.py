@@ -79,7 +79,6 @@ class PayloadHandler(Constants):
             if game_name == "lol":
                 game_list = game_data["data"]["schedule"]["events"]
                 lol_accepted_games = [("lol", x) for x in game_list if x["state"] == "inProgress" and "match" in x.keys()]
-
             elif game_name == "dota2":
                 game_list = game_data["result"]["games"]
                 dota_accepted_games = [("dota2", x) for x in game_list if len(
@@ -95,7 +94,6 @@ class PayloadHandler(Constants):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         while True:
             accepted_games = self.scrape_and_filter_data()
-            print(len(accepted_games))
             self.game_controller.update_games(game_list=accepted_games)
 
             self.game_controller.create_images()
