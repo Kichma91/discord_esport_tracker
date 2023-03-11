@@ -16,9 +16,9 @@ from scrapers.Scraper import AsyncScraper
 from constants import Constants
 
 class PayloadHandler(Constants):
-    def __init__(self, update_dota_league = False):
+    def __init__(self, update_dota_league = True):
         super().__init__(type="payload")
-
+        self.last_dota_update = datetime.datetime.now()
         self.main_scraper = AsyncScraper()
         # self.csgo_scraper = CSGOscraper()
         if update_dota_league:
@@ -63,6 +63,8 @@ class PayloadHandler(Constants):
 
 
     def scrape_and_filter_data(self):
+        if datetime.datetime.now() - self.last_dota_update > datetime.timedelta(hours=24):
+            self.update_dota_league_data()
         # csgo_data = self.csgo_scraper.run_scrape()
 
         dota_accepted_games = []
@@ -79,6 +81,7 @@ class PayloadHandler(Constants):
             if game_name == "lol":
                 game_list = game_data["data"]["schedule"]["events"]
                 lol_accepted_games = [("lol", x) for x in game_list if x["state"] == "inProgress" and "match" in x.keys()]
+
             elif game_name == "dota2":
                 game_list = game_data["result"]["games"]
                 dota_accepted_games = [("dota2", x) for x in game_list if len(

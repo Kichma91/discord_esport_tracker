@@ -5,11 +5,13 @@ from constants import Constants
 class LoLImg(Constants):
     def __init__(self):
         super().__init__(type="lol")
+        self.im_show = False
         self.active_game_template = Image.open(self.active_game_template_file).convert("RGBA")
         self.partial_game_template = Image.open(self.partial_game_template_file).convert("RGBA")
         self.player_name_font = ImageFont.truetype("segoeuib.ttf", 19)
         self.player_hero_font = ImageFont.truetype("segoeuib.ttf", 17)
         self.player_role_font = ImageFont.truetype("segoeuib.ttf", 16)
+        self.smallest_font = ImageFont.truetype("segoeuib.ttf", 14)
         self.league_name_font = ImageFont.truetype("segoeuib.ttf", 27)
         self.team_name_font = ImageFont.truetype("segoeuib.ttf", 23)
         self.team_name_font_smaller = ImageFont.truetype("segoeuib.ttf", 19)
@@ -251,7 +253,7 @@ class LoLImg(Constants):
             if winner_color == "blue":
                 y_coord = 115
             else:
-                y_coord = 532
+                y_coord = 525
             im1_redrawer.text((x_coord, y_coord),
                               text="GAME WON", font=self.player_role_font,
                               fill=self.font_colors[winner_color])
@@ -259,21 +261,25 @@ class LoLImg(Constants):
                               text=f"GAME FINISHED, WINNERS:\n{winner_team_name}", font=self.player_role_font,
                               fill=self.font_colors["main"])
             finished_string = "FINISHED-"
-        elif self.game_object.finished_state:
+        elif self.game_object.finished_state2:
             winner_color = self.game_object.winner_team.color
             x_coord = 405
             if winner_color == "blue":
                 y_coord = 115
             else:
-                y_coord = 532
+                y_coord = 525
             im1_redrawer.text(( x_coord,y_coord ),
                               text="GAME WON", font=self.player_role_font,
                               fill=self.font_colors[winner_color])
             im1_redrawer.text((20, 30),
                               text="WAITING NEXT GAME", font=self.player_role_font,
                               fill=self.font_colors["main"])
-
-        im1.show()
+        elif self.game_object.finished_state:
+            im1_redrawer.text((20, 10),
+                              text=f"MATCH FINISHED, WAITING\nFOR ADDITIONAL DATA", font=self.smallest_font,
+                              fill=self.font_colors["main"])
+        if self.im_show:
+            im1.show()
         im1.save(f"{self.created_images_dir}/{finished_string}{self.game_object.game_key}.png")
 
     def partial_image_data_parse(self):
@@ -366,7 +372,7 @@ class LoLImg(Constants):
                 finished_string = "FINISHED-"
 
 
-            elif self.game_object.finished_state:
+            elif self.game_object.finished_state2:
                 winner_color = self.game_object.winner_team.color
                 x_coord = 330
                 y_coord = 110
@@ -379,13 +385,18 @@ class LoLImg(Constants):
                 im1_redrawer.text((20, 30),
                                   text="WAITING NEXT GAME", font=self.player_role_font,
                                   fill=self.font_colors["main"])
+            elif self.game_object.finished_state:
+                im1_redrawer.text((20, 10),
+                                  text=f"MATCH FINISHED, WAITING\nFOR ADDITIONAL DATA", font=self.smallest_font,
+                                  fill=self.font_colors["main"])
             else:
                 im1_redrawer.text((350, 110),
                                   text="LIVE", font=self.player_name_font,
                                   fill=self.font_colors["main"])
 
 
-            im1.show()
+            if self.im_show:
+                im1.show()
             im1.save(f"{self.created_images_dir}/{finished_string}{self.game_object.game_key}.png")
 
 

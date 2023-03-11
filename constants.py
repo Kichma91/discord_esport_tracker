@@ -10,7 +10,14 @@ class Constants():
             self.active_game_template_file = "assets/lol/template_full.png"
             self.partial_game_template_file = "assets/lol/template_partial.png"
         elif type == "dota":
-            pass
+            self.hero_image_dir = "assets/dota/dota_hero_icons"
+            self.item_mage_dir = "assets/dota/dota_item_icons"
+            self.team_image_dir = "assets/dota/dota_team_logos"
+            self.league_image_dir = "assets/dota/dota_tournament_logos"
+            self.league_data = "assets/dota/dota_leagues_data.csv"
+            self.active_game_template_file = "assets/dota"
+            self.partial_game_template_file = "assets/dota"
+            self.created_images_dir = "game_stats/dota"
         elif type == "valorant":
             pass
         elif type == "csgo":

@@ -54,6 +54,7 @@ class LoLMatch(Match, Constants):
         self.match_finished = False
         self.finished_time = None
         self.finished_state = False
+        self.finished_state2 = False
         self.secondary_data_assigned = False
         self.third_data_assigned = False
         self.main_time_difference = timedelta()
@@ -85,7 +86,7 @@ class LoLMatch(Match, Constants):
 
 
     def update_data(self):
-        if self.match_finished or self.finished_state:
+        if self.match_finished or self.finished_state2:
             return
 
         else:
@@ -101,29 +102,31 @@ class LoLMatch(Match, Constants):
             if not self.third_data_assigned:
                 self.assign_third_data()
             self.update_player_data()
-
+        print("data updated on ", self.game_key)
 
     def detect_end_game(self):
         matches_to_win = math.ceil(self.games_count / 2)
         for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
             if team["result"]["gameWins"] >= matches_to_win:
+                print(team["result"]["gameWins"])
+                self.winner_team = self.teams[team["name"]]
+                self.teams[team["name"]].game_wins = team["result"]["gameWins"]
                 print("FINISHED MATCH")
-                for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
-                    if team["result"]["gameWins"] != self.teams[team["name"]].game_wins:
-                        self.winner_team = self.teams[team["name"]]
-                        self.teams[team["name"]].game_wins = team["result"]["gameWins"]
                 self.match_finished = True
                 self.match_finished_time = datetime.now()
                 return
         for game in self.raw_data_two["data"]["event"]["match"]["games"]:
             if game["id"] == self.active_game_id:
                 if game["state"] != "inProgress":
-                    print("FINISHED GAME")
+                    print("FINISHED GAME", " ", self.game_key)
                     for team in self.raw_data_two["data"]["event"]["match"]["teams"]:
                         if team["result"]["gameWins"] != self.teams[team["name"]].game_wins:
+                            print(team["result"]["gameWins"])
+                            print("FINISHED GAME2")
                             self.winner_team = self.teams[team["name"]]
                             self.teams[team["name"]].game_wins = team["result"]["gameWins"]
-                    self.finished_time = datetime.now()
+                            self.finished_state2 = True
+                            self.finished_time = datetime.now()
                     self.finished_state = True
                     return
 
@@ -136,6 +139,7 @@ class LoLMatch(Match, Constants):
         self.secondary_data_assigned = False
         self.active_game_id = None
         self.finished_state = False
+        self.finished_state2 = False
         self.blue_team = ""
         self.red_team = ""
         self.next_game = ""

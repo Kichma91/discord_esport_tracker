@@ -91,8 +91,8 @@ class AsyncScraper():
         tasks = []
         self.data = []
         self.loop = asyncio.get_event_loop()
-        tasks.append((self.loop.create_task(self.get_valorant_data()),"valorant"))
-        tasks.append((self.loop.create_task(self.get_dota_data()),"dota"))
+        # tasks.append((self.loop.create_task(self.get_valorant_data()),"valorant"))
+        # tasks.append((self.loop.create_task(self.get_dota_data()),"dota"))
         tasks.append((self.loop.create_task(self.get_lol_data()),"lol"))
 
         for task,game_name in tasks:
