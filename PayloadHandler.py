@@ -16,7 +16,7 @@ from scrapers.Scraper import AsyncScraper
 from constants import Constants
 
 class PayloadHandler(Constants):
-    def __init__(self, update_dota_league = True):
+    def __init__(self, update_dota_league = False):
         super().__init__(type="payload")
         self.last_dota_update = datetime.datetime.now()
         self.main_scraper = AsyncScraper()
@@ -60,6 +60,7 @@ class PayloadHandler(Constants):
         df = df[0]
         df["League"] = id_list
         df.to_csv(self.dota_league_data_file)
+        print("dota league data updated")
 
 
     def scrape_and_filter_data(self):

@@ -42,3 +42,6 @@ class LolPlayer(Constants):
                 hero_link = fr"https://ddragon.leagueoflegends.com/cdn/13.3.1/img/champion/{hero_image_name}"
                 urllib.request.urlretrieve(hero_link, fr"{self.hero_image_dir}/{hero_image_name}")
                 time.sleep(0.5)
+
+
+

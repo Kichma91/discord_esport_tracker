@@ -114,6 +114,7 @@ class LoLImg(Constants):
                     'team_dragons': 525+increment
                 }
             }
+
     def create_image(self, game_object):
         self.game_object = game_object
         if game_object.third_data_assigned:
@@ -123,9 +124,8 @@ class LoLImg(Constants):
         else:
             pass
 
+
     def create_active_image(self):
-
-
         im1 = self.active_game_template.copy()
         im1_redrawer = ImageDraw.Draw(im1)
 

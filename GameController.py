@@ -4,6 +4,7 @@ import json
 from game_objects.dota_game import DotaMatch
 from game_objects.lol_game import LoLMatch
 from image_creators.LoLImage import LoLImg
+from image_creators.DotaImage import DotaImg
 
 from constants import Constants
 
@@ -55,7 +56,7 @@ class GameController(Constants):
 
                         else:
                             print("adding finished game")
-                            self.lol_finished_games_list[game_key] = game2.finished_time
+                            self.lol_finished_games_list[game_key] = datetime.datetime.now()
                     else:
                         game2.update_data()
 
@@ -64,6 +65,7 @@ class GameController(Constants):
                 game_key = f'dota2_{game_data["league_id"]}_{game_data["match_id"]}'
                 found_games.append(game_key)
                 if game_key not in self.active_game_list.keys():
+                    print("Creating dota game")
                     self.active_game_list[game_key] = DotaMatch(game_data)
                 else:
                     self.active_game_list[game_key].update_data(game_data)
@@ -85,6 +87,11 @@ class GameController(Constants):
                 print("Type: ",game.game_type, "|Key: ",  game.game_key,"|Active game id: ", game.active_game_id,
                       "|Finished: ", game.finished_state,game.match_finished,game.finished_state2, "|Data level: ",game.raw_data_level)
                 self.lol_image_creator.create_image(game)
+
+            elif game.game_type == "dota2":
+                print("Type: ", game.game_type, "|Key: ", game.game_key, "|State:", game.state)
+                self.dota_image_creator.create_image(game)
+
 
 
 
