@@ -19,6 +19,9 @@ class Constants():
             self.active_game_template_file = "assets/dota/active_template.png"
             self.partial_game_template_file = "assets/dota/pick_template.png"
             self.created_images_dir = "game_stats/dota"
+            with open(r"assets/dota/dota_hero_ids.json", "r") as fp:
+                self.dota_hero_ids = json.load(fp)
+
         elif type == "valorant":
             pass
         elif type == "csgo":

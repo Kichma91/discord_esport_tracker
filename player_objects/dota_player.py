@@ -7,7 +7,8 @@ class DotaPlayer(Constants):
         self.raw_player_data = player_data
         self.id = player_data["account_id"]
         self.name = player_data["name"]
-        self.hero_id = player_data["name"]
+        self.hero_id = player_data["hero_id"]
+        self.hero_name = self.dota_hero_ids[str(self.hero_id)]["localized_name"]
 
     def update_data(self, data):
         self.raw_update_data = data
