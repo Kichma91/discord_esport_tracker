@@ -4,17 +4,16 @@ from team_objects.dota_team import DotaTeam
 
 
 
-class DotaMatch(Match, Constants):
+class DotaMatch(Constants):
     def __init__(self, data):
         Constants.__init__(self, type="dota")
-        self.game_key = f'dota2_{data["league_id"]}_{data["match_id"]}'
-        self.game_type = "dota2"
+        self.game_key = f'dota_{data["league_id"]}_{data["match_id"]}'
+        self.game_type = "dota"
         self.teams = {}
-        self.radiant_team = None
-        self.dire_team = None
+        self.update_data(data)
 
     def __setattr__(self, name, value):
-        if name in ["raw_data", "raw_data_level", "state"]:
+        if name in ["raw_data", "raw_data_level", "state", "teams"]:
             super().__setattr__(name, value)
         else:
             if hasattr(self,name):
@@ -23,14 +22,6 @@ class DotaMatch(Match, Constants):
                 super().__setattr__(name, value)
 
 
-    def __getattr__(self, item):
-        if item == "state":
-            if self.raw_data_level == "low":
-                return "pick"
-            elif self.raw_data_level == "high":
-                return "inProgress"
-        else:
-            raise AttributeError(f"Attribute '{item}' does not exist")
 
 
     def update_data(self, data):
@@ -43,22 +34,28 @@ class DotaMatch(Match, Constants):
     def determine_data_quality(self):
         running_game = True
         if "scoreboard" in self.raw_data.keys():
-            if "picks" in self.raw_data["scoreboard"].keys():
+
+            if "picks" in self.raw_data["scoreboard"]["radiant"].keys() and "picks" in self.raw_data["scoreboard"]["dire"].keys():
                 if len(self.raw_data["scoreboard"]["radiant"]["picks"]) == 5 and len(self.raw_data["scoreboard"]["dire"]["picks"]) == 5:
                     for team in ["radiant", "dire"]:
                         for player in self.raw_data["scoreboard"][team]["players"]:
                             if player["hero_id"] == 0:
+                                print("failed on player_id")
                                 running_game = False
                 else:
                     running_game = False
+                    print("failed on picks len")
             else:
                 running_game = False
+                print("failed on picks")
         else:
             running_game = False
+            print("failed on scoreboard")
+        print(running_game)
         if running_game:
-            self.raw_data_level = "high" # for running game
+            self.state = "inProgress" # for running game
         else:
-            self.raw_data_level = "low" # for hero selection
+            self.state = "pick" # for hero selection
 
     def assign_data(self):
         if self.state == "pick":
@@ -71,7 +68,8 @@ class DotaMatch(Match, Constants):
         self.match_id = self.raw_data["match_id"]
         league_name = self.dota_league_data.loc[
             self.dota_league_data["League"] == self.raw_data["league_id"], "League Name"]
-        self.leage_name = league_name.iloc[0]
+        self.league_name = league_name.iloc[0]
+        # print(league_name)
         image_name_func = lambda: f"{self.league_name}.png" if f"{self.league_name}.png" in self.league_image_dir else "not_found"
         self.league_image_file = image_name_func()
         for team in ["radiant","dire"]:
@@ -79,9 +77,11 @@ class DotaMatch(Match, Constants):
                 if team == "radiant":
                     self.radiant_team = DotaTeam(raw_data=self.raw_data[f"{team}_team"], side=team)
                     self.teams[team] = self.radiant_team
+                    self.radiant_team.game_wins = self.raw_data["radiant_series_wins"]
                 elif team == "dire":
                     self.dire_team = DotaTeam(raw_data=self.raw_data[f"{team}_team"], side=team)
                     self.teams[team] = self.dire_team
+                    self.dire_team.game_wins = self.raw_data["dire_series_wins"]
 
             if "scoreboard" in self.raw_data.keys():
                 if "picks" in self.raw_data["scoreboard"][team].keys():
@@ -96,7 +96,7 @@ class DotaMatch(Match, Constants):
         league_name = self.dota_league_data.loc[
             self.dota_league_data["League"] == self.raw_data["league_id"], "League Name"]
         self.league_name = league_name.iloc[0]
-        image_name_func = lambda: f"{self.league_name}.png" if f"{self.league_name}.png" in self.dota_league_logo_dir else "not_found"
+        image_name_func = lambda: f"{self.league_name}.png" if f"{self.league_name}.png" in self.league_image_dir else "not_found"
         self.league_image_file = image_name_func()
         self.duration = self.raw_data["scoreboard"]["duration"]
 

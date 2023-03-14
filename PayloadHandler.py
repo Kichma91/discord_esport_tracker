@@ -16,7 +16,7 @@ from scrapers.Scraper import AsyncScraper
 from constants import Constants
 
 class PayloadHandler(Constants):
-    def __init__(self, update_dota_league = False):
+    def __init__(self, update_dota_league = True):
         super().__init__(type="payload")
         self.last_dota_update = datetime.datetime.now()
         self.main_scraper = AsyncScraper()
@@ -83,11 +83,15 @@ class PayloadHandler(Constants):
                 game_list = game_data["data"]["schedule"]["events"]
                 lol_accepted_games = [("lol", x) for x in game_list if x["state"] == "inProgress" and "match" in x.keys()]
 
-            elif game_name == "dota2":
+            elif game_name == "dota":
                 game_list = game_data["result"]["games"]
-                dota_accepted_games = [("dota2", x) for x in game_list if len(
+                # for game in game_list:
+                #     print(game["league_id"])
+
+                dota_accepted_games = [("dota", x) for x in game_list if (len(
                     self.dota_league_data.loc[self.dota_league_data["League"] == x[
-                    "league_id"], "League Name"]) >= 1 and (("radiant_team" and "dire_team") in x.keys())]
+                    "league_id"], "League Name"]) >= 1 or int(x["league_id"]) in [15085,15087,15135,15136,15086,15088,15137,15138,15140,15141,15125,15126]) and (("radiant_team" and "dire_team") in x.keys())]
+
             elif game_name == "valorant":
                 pass
 

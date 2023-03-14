@@ -18,7 +18,7 @@ class DotaPlayer(Constants):
         self.player_slot = data["player_slot"]
         self.kills = data["kills"]
         self.deaths = data["death"]
-        self.assists = data["assistss"]
+        self.assists = data["assists"]
         self.last_hits = data["last_hits"]
         self.denies = data["denies"]
         self.gold = data["gold"]

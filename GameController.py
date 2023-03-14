@@ -14,6 +14,7 @@ class GameController(Constants):
         super().__init__(type="controller")
         self.active_game_list = {}
         self.lol_image_creator = LoLImg()
+        self.dota_image_creator = DotaImg()
         self.lol_finished_games_list = {}
         self.reset_time = datetime.timedelta(minutes=2)
         self.delete_time = datetime.timedelta(minutes=5)
@@ -61,12 +62,13 @@ class GameController(Constants):
                         game2.update_data()
 
 
-            elif game_name == "dota2":
-                game_key = f'dota2_{game_data["league_id"]}_{game_data["match_id"]}'
+            elif game_name == "dota":
+                game_key = f'dota_{game_data["league_id"]}_{game_data["match_id"]}'
                 found_games.append(game_key)
                 if game_key not in self.active_game_list.keys():
                     print("Creating dota game")
                     self.active_game_list[game_key] = DotaMatch(game_data)
+
                 else:
                     self.active_game_list[game_key].update_data(game_data)
 
@@ -88,8 +90,11 @@ class GameController(Constants):
                       "|Finished: ", game.finished_state,game.match_finished,game.finished_state2, "|Data level: ",game.raw_data_level)
                 self.lol_image_creator.create_image(game)
 
-            elif game.game_type == "dota2":
-                print("Type: ", game.game_type, "|Key: ", game.game_key, "|State:", game.state)
+            elif game.game_type == "dota":
+                try:
+                    print("Type: ", game.game_type, "|Key: ", game.game_key, "|State:", game.state)
+                except AttributeError:
+                    pass
                 self.dota_image_creator.create_image(game)
 
 

@@ -97,6 +97,7 @@ class AsyncScraper():
 
         for task,game_name in tasks:
             data = await task
+
             self.data.append((game_name,data))
 
 

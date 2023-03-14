@@ -15,7 +15,8 @@ class Constants():
             self.item_mage_dir = "assets/dota/dota_item_icons"
             self.team_image_dir = "assets/dota/dota_team_logos"
             self.league_image_dir = "assets/dota/dota_tournament_logos"
-            self.league_data = "assets/dota/dota_leagues_data.csv"
+            league_data = r"assets/dota/dota_leagues_data.csv"
+            self.dota_league_data = pd.read_csv(league_data)
             self.active_game_template_file = "assets/dota/active_template.png"
             self.partial_game_template_file = "assets/dota/pick_template.png"
             self.created_images_dir = "game_stats/dota"

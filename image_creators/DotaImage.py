@@ -20,6 +20,7 @@ class DotaImg(Constants):
             "team_img": 5,
             "team_name": 80,
             "team_wins": 295,
+            "hero_img": 10,
             "player_name": 67,
             "player_lvl": 87,
             "player_hero": 130,
@@ -39,6 +40,8 @@ class DotaImg(Constants):
             "net_worth": 1100
           }
         self.active_y_positions = {
+            "league_img":5,
+            "league_name": 15,
             "player_difference": 48,
             "team_difference": 380,
             "main": 80,
@@ -76,17 +79,20 @@ class DotaImg(Constants):
         for i, team in enumerate([self.game_object.radiant_team,self.game_object.dire_team]):
             team_main_pixel_addition = i * self.active_y_positions["team_difference"]
             im1_redrawer.text((self.active_x_positions["team_name"],
-                               self.active_y_positions["team_name"] + team_main_pixel_addition),
+                               self.active_y_positions["main"] + team_main_pixel_addition),
                               text=team.name,
                               font=self.league_font,
                               fill=self.font_colors["main"])
             team_image_file = fr"{self.team_image_dir}/{team.id}.png"
-            team_image = Image.open(team_image_file)
-            team_image = team_image.resize((80, 80))
-            im1.paste(team_image,
-                      (self.active_x_positions["team_img"],
-                       self.active_y_positions["team_img"]+team_main_pixel_addition),
-                      team_image)
+            try:
+                team_image = Image.open(team_image_file)
+                team_image = team_image.resize((80, 80))
+                im1.paste(team_image,
+                          (self.active_x_positions["team_img"],
+                           self.active_y_positions["main"]+team_main_pixel_addition),
+                          team_image)
+            except FileNotFoundError:
+                pass
 
             for i2, player in enumerate(team.players.values()):
                 y_pixel_addition =  team_main_pixel_addition + (i2 * self.active_y_positions["player_difference"])
@@ -103,7 +109,7 @@ class DotaImg(Constants):
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["player_lvl"],
                                    self.active_y_positions["player_lvl"] + y_pixel_addition),
-                                  text=player.level,
+                                  text=str(player.level),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["player_hero"],
@@ -113,22 +119,22 @@ class DotaImg(Constants):
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["kills"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.kills,
+                                  text=str(player.kills),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["deaths"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.deaths,
+                                  text=str(player.deaths),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["assists"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.assists,
+                                  text=str(player.assists),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["gold"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.gold,
+                                  text=str(player.gold),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 lhdn_string = fr"{player.last_hits}/{player.denies}"
@@ -139,20 +145,22 @@ class DotaImg(Constants):
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["gpm"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.gpm,
+                                  text=str(player.gpm),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["xpm"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.xpm,
+                                  text=str(player.xpm),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
                 im1_redrawer.text((self.active_x_positions["net_worth"],
                                    self.active_y_positions["main"] + y_pixel_addition),
-                                  text=player.net_worth,
+                                  text=str(player.net_worth),
                                   font=self.player_name_font,
                                   fill=self.font_colors["main"])
-
+        if self.im_show:
+            im1.show()
+        im1.save(f"{self.created_images_dir}/{self.game_object.game_key}.png")
 
 
     def create_pick_image(self):
