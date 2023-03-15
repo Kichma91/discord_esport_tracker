@@ -6,7 +6,7 @@ from requests.structures import CaseInsensitiveDict
 import time
 import aiohttp
 
-from utilities import  client_id, secret , steam_auth_key
+from utilities import client_id, secret , steam_auth_key
 
 
 

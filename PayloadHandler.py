@@ -5,11 +5,12 @@ import datetime
 import time
 import requests
 import urllib.request
-from GameController import GameController
+
 
 from bs4 import BeautifulSoup
 import pandas as pd
 
+from GameController import GameController
 from utilities import  client_id, secret , steam_auth_key
 from scrapers.csgo_scraper import CSGOscraper
 from scrapers.Scraper import AsyncScraper

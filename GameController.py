@@ -1,11 +1,9 @@
 import datetime
-import json
 
 from game_objects.dota_game import DotaMatch
 from game_objects.lol_game import LoLMatch
 from image_creators.LoLImage import LoLImg
 from image_creators.DotaImage import DotaImg
-
 from constants import Constants
 
 
